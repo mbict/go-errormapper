@@ -15,26 +15,36 @@ func (et ErrorTranslations) AddDefaultTranslation(message string) ErrorTranslati
 	return et.AddTranslation(nil, message)
 }
 
-func (et ErrorTranslations) Translate(errs validate.Errors) string {
-	return et.translateErrors(errs, false)
+func (et ErrorTranslations) TranslateError(err error, fallback ...ErrorTranslations) (string, bool) {
+	translation, ok := et[err]
+	if !ok {
+		translation, ok = et[nil]
+		if !ok {
+			//fallback to default
+			if len(fallback) >= 1 {
+				return fallback[0].TranslateError(err, fallback[1:]...)
+			}
+		}
+		return "", false
+	}
+	return translation, true
 }
 
-func (et ErrorTranslations) TranslateFirst(errs validate.Errors) string {
-	return et.translateErrors(errs, true)
+func (et ErrorTranslations) Translate(errs validate.Errors, fallback ...ErrorTranslations) string {
+	return et.translateErrors(errs, false, fallback)
 }
 
-func (et ErrorTranslations) translateErrors(errs validate.Errors, firstOnly bool) string {
+func (et ErrorTranslations) TranslateFirst(errs validate.Errors, fallback ...ErrorTranslations) string {
+	return et.translateErrors(errs, true, fallback)
+}
+
+func (et ErrorTranslations) translateErrors(errs validate.Errors, firstOnly bool, fallback []ErrorTranslations) string {
 	result := ""
 	for _, err := range errs {
 
-		//direct translation
-		translation, ok := et[err]
+		translation, ok := et.TranslateError(err, fallback...)
 		if !ok {
-			translation, ok = et[nil]
-			if !ok {
-				//find next
-				continue
-			}
+			continue
 		}
 
 		if result == "" {
@@ -64,15 +74,15 @@ func (ft FieldTranslations) AddDefaultTranslation(field string, message string) 
 	return ft.AddTranslation(field, nil, message)
 }
 
-func (ft FieldTranslations) Translate(errorMap validate.ErrorMap) map[string]string {
-	return ft.translateErrorMap(errorMap, false)
+func (ft FieldTranslations) Translate(errorMap validate.ErrorMap, fallback ...ErrorTranslations) map[string]string {
+	return ft.translateErrorMap(errorMap, false, fallback)
 }
 
-func (ft FieldTranslations) TranslateFirst(errorMap validate.ErrorMap) map[string]string {
-	return ft.translateErrorMap(errorMap, true)
+func (ft FieldTranslations) TranslateFirst(errorMap validate.ErrorMap, fallback ...ErrorTranslations) map[string]string {
+	return ft.translateErrorMap(errorMap, true, fallback)
 }
 
-func (ft FieldTranslations) translateErrorMap(errorMap validate.ErrorMap, firstOnly bool) map[string]string {
+func (ft FieldTranslations) translateErrorMap(errorMap validate.ErrorMap, firstOnly bool, fallback []ErrorTranslations) map[string]string {
 	result := make(map[string]string)
 	for field, errs := range errorMap {
 		errTrans, ok := ft[field]
@@ -82,9 +92,9 @@ func (ft FieldTranslations) translateErrorMap(errorMap validate.ErrorMap, firstO
 
 		var message string
 		if firstOnly == true {
-			message = errTrans.TranslateFirst(errs)
+			message = errTrans.TranslateFirst(errs, fallback...)
 		} else {
-			message = errTrans.Translate(errs)
+			message = errTrans.Translate(errs, fallback...)
 		}
 
 		if message != "" {
