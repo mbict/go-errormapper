@@ -12,23 +12,23 @@ func Test(t *testing.T) {
 }
 
 type ErrorMapperSuite struct {
-	errMap errormapper.ErrorMapper
+	errMap errormapper.FieldTranslations
 }
 
 var _ = Suite(&ErrorMapperSuite{})
 
 func (s *ErrorMapperSuite) SetUpTest(c *C) {
 
-	s.errMap = make(errormapper.ErrorMapper)
-	s.errMap.AddMessage("A", nil, "A Nil")
-	s.errMap.AddMessage("B", validate.ErrRequired, "B Required")
-	s.errMap.AddMessage("B", validate.ErrMax, "B Max")
-	s.errMap.AddMessage("B", nil, "B Nil")
-	s.errMap.AddMessage("C", validate.ErrRequired, "C Required")
-	s.errMap.AddMessage("C", validate.ErrMax, "C Max")
+	s.errMap = make(errormapper.FieldTranslations)
+	s.errMap.AddDefaultTranslation("A", "A Nil")
+	s.errMap.AddTranslation("B", validate.ErrRequired, "B Required")
+	s.errMap.AddTranslation("B", validate.ErrMax, "B Max")
+	s.errMap.AddDefaultTranslation("B", "B Nil")
+	s.errMap.AddTranslation("C", validate.ErrRequired, "C Required")
+	s.errMap.AddTranslation("C", validate.ErrMax, "C Max")
 }
 
-func (s *ErrorMapperSuite) TestErrorMapperDefaultTranslation(c *C) {
+func (s *ErrorMapperSuite) TestTranslationFirstFallbackToDefault(c *C) {
 	em := validate.ErrorMap{
 		"A": {validate.ErrRequired, validate.ErrMin},
 		"B": {validate.ErrMin},
@@ -42,7 +42,7 @@ func (s *ErrorMapperSuite) TestErrorMapperDefaultTranslation(c *C) {
 	c.Assert(translated["B"], Equals, "B Nil")
 }
 
-func (s *ErrorMapperSuite) TestErrorMapper(c *C) {
+func (s *ErrorMapperSuite) TestTranslateFirst(c *C) {
 	em := validate.ErrorMap{
 		"B": {validate.ErrRequired},
 		"C": {validate.ErrMax},

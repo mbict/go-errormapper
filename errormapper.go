@@ -2,71 +2,93 @@ package errormapper
 
 import validate "github.com/mbict/go-validate"
 
-type Translation map[error]string
+type ErrorTranslations map[error]string
 
-type ErrorMapper map[string]Translation
+type FieldTranslations map[string]ErrorTranslations
 
-func (m ErrorMapper) AddMessage(field string, err error, message string) ErrorMapper {
-	if _, ok := m[field]; !ok {
-		m[field] = make(Translation)
-	}
-
-	m[field][err] = message
-	return m
+func (et ErrorTranslations) AddTranslation(err error, message string) ErrorTranslations {
+	et[err] = message
+	return et
 }
 
-func (m ErrorMapper) Translate(errorMap validate.ErrorMap) map[string]string {
+func (et ErrorTranslations) AddDefaultTranslation(message string) ErrorTranslations {
+	return et.AddTranslation(nil, message)
+}
 
-	first := false
+func (et ErrorTranslations) Translate(errs validate.Errors) string {
+	return et.translateErrors(errs, false)
+}
 
-	result := make(map[string]string)
-	for field, errs := range errorMap {
-		errMapper, ok := m[field]
+func (et ErrorTranslations) TranslateFirst(errs validate.Errors) string {
+	return et.translateErrors(errs, true)
+}
+
+func (et ErrorTranslations) translateErrors(errs validate.Errors, firstOnly bool) string {
+	result := ""
+	for _, err := range errs {
+
+		//direct translation
+		translation, ok := et[err]
 		if !ok {
-			continue
+			translation, ok = et[nil]
+			if !ok {
+				//find next
+				continue
+			}
 		}
 
-		for _, err := range errs {
+		if result == "" {
+			result = translation
+		} else {
+			result = result + ", " + translation
+		}
 
-			//direct translation
-			translation, ok := errMapper[err]
-			if !ok {
-				translation, ok = errMapper[nil]
-				if !ok {
-					//find next
-					continue
-				}
-			}
-
-			_, ok = result[field]
-			if ok {
-				result[field] = result[field] + ", " + translation
-			} else {
-				result[field] = translation
-			}
-
-			if first {
-				break
-			}
+		if firstOnly {
+			//first message is enough head over to the next field
+			return result
 		}
 	}
 	return result
 }
 
-func (m ErrorMapper) TranslateFirst(errorMap validate.ErrorMap) map[string]string {
+func (ft FieldTranslations) AddTranslation(field string, err error, message string) FieldTranslations {
+	if _, ok := ft[field]; !ok {
+		ft[field] = make(ErrorTranslations)
+	}
+
+	ft[field].AddTranslation(err, message)
+	return ft
+}
+
+func (ft FieldTranslations) AddDefaultTranslation(field string, message string) FieldTranslations {
+	return ft.AddTranslation(field, nil, message)
+}
+
+func (ft FieldTranslations) Translate(errorMap validate.ErrorMap) map[string]string {
+	return ft.translateErrorMap(errorMap, false)
+}
+
+func (ft FieldTranslations) TranslateFirst(errorMap validate.ErrorMap) map[string]string {
+	return ft.translateErrorMap(errorMap, true)
+}
+
+func (ft FieldTranslations) translateErrorMap(errorMap validate.ErrorMap, firstOnly bool) map[string]string {
 	result := make(map[string]string)
 	for field, errs := range errorMap {
-		errMapper, ok := m[field]
+		errTrans, ok := ft[field]
 		if !ok {
 			continue
 		}
 
-		if translation, ok := errMapper[errs[0]]; ok {
-			//direct translation
-			result[field] = translation
-		} else if translation, ok := errMapper[nil]; ok {
-			//default translation (nil error)
-			result[field] = translation
+		var message string
+		if firstOnly == true {
+			message = errTrans.TranslateFirst(errs)
+		} else {
+			message = errTrans.Translate(errs)
+		}
+
+		if message != "" {
+			result[field] = message
 		}
 	}
 	return result
