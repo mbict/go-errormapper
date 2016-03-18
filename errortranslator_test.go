@@ -15,6 +15,40 @@ type ErrorTranslatorSuite struct{}
 
 var _ = Suite(&ErrorTranslatorSuite{})
 
+func (s *ErrorTranslatorSuite) TestAddTranslation(c *C) {
+	et := errormapper.ErrorTranslator{}
+
+	et.AddTranslation(validate.ErrRequired, "translation")
+
+	c.Assert(et, DeepEquals, errormapper.ErrorTranslator{validate.ErrRequired: "translation"})
+
+	//overwrite
+	et.AddTranslation(validate.ErrRequired, "overritten")
+
+	c.Assert(et, DeepEquals, errormapper.ErrorTranslator{validate.ErrRequired: "overritten"})
+
+	//add more
+	et.AddTranslation(validate.ErrMin, "min")
+
+	c.Assert(et, DeepEquals, errormapper.ErrorTranslator{
+		validate.ErrRequired: "overritten",
+		validate.ErrMin:      "min",
+	})
+}
+
+func (s *ErrorTranslatorSuite) TestSetDefaultTranslation(c *C) {
+	et := errormapper.ErrorTranslator{}
+
+	et.SetDefaultTranslation("default translation")
+
+	c.Assert(et, DeepEquals, errormapper.ErrorTranslator{nil: "default translation"})
+
+	//overwrite
+	et.SetDefaultTranslation("overwritten")
+
+	c.Assert(et, DeepEquals, errormapper.ErrorTranslator{nil: "overwritten"})
+}
+
 func (s *ErrorTranslatorSuite) TestTranslateError(c *C) {
 	et := errormapper.ErrorTranslator{
 		validate.ErrRequired: "required translate",
