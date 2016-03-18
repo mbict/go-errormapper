@@ -1,7 +1,7 @@
-package errormapper_test
+package errortranslator_test
 
 import (
-	errormapper "github.com/mbict/go-errormapper"
+	errortranslator "github.com/mbict/go-errortranslator"
 	validate "github.com/mbict/go-validate"
 	. "gopkg.in/check.v1"
 )
@@ -11,26 +11,26 @@ type FieldErrorTranslatorSuite struct{}
 var _ = Suite(&FieldErrorTranslatorSuite{})
 
 func (s *FieldErrorTranslatorSuite) TestAddTranslation(c *C) {
-	et := errormapper.FieldErrorTranslator{}
+	et := errortranslator.New()
 
 	et.AddTranslation("A", validate.ErrRequired, "translation")
 
-	c.Assert(et, DeepEquals, errormapper.FieldErrorTranslator{
-		"A": errormapper.ErrorTranslator{validate.ErrRequired: "translation"},
+	c.Assert(et, DeepEquals, errortranslator.FieldErrorTranslator{
+		"A": errortranslator.ErrorTranslator{validate.ErrRequired: "translation"},
 	})
 
 	//overwrite
 	et.AddTranslation("A", validate.ErrRequired, "overritten")
 
-	c.Assert(et, DeepEquals, errormapper.FieldErrorTranslator{
-		"A": errormapper.ErrorTranslator{validate.ErrRequired: "overritten"},
+	c.Assert(et, DeepEquals, errortranslator.FieldErrorTranslator{
+		"A": errortranslator.ErrorTranslator{validate.ErrRequired: "overritten"},
 	})
 
 	//add more
 	et.AddTranslation("A", validate.ErrMin, "min")
 
-	c.Assert(et, DeepEquals, errormapper.FieldErrorTranslator{
-		"A": errormapper.ErrorTranslator{
+	c.Assert(et, DeepEquals, errortranslator.FieldErrorTranslator{
+		"A": errortranslator.ErrorTranslator{
 			validate.ErrRequired: "overritten",
 			validate.ErrMin:      "min",
 		},
@@ -38,74 +38,74 @@ func (s *FieldErrorTranslatorSuite) TestAddTranslation(c *C) {
 
 	//add other field more
 	et.AddTranslation("B", validate.ErrMin, "min on b")
-	c.Assert(et, DeepEquals, errormapper.FieldErrorTranslator{
-		"A": errormapper.ErrorTranslator{
+	c.Assert(et, DeepEquals, errortranslator.FieldErrorTranslator{
+		"A": errortranslator.ErrorTranslator{
 			validate.ErrRequired: "overritten",
 			validate.ErrMin:      "min",
 		},
-		"B": errormapper.ErrorTranslator{
+		"B": errortranslator.ErrorTranslator{
 			validate.ErrMin: "min on b",
 		},
 	})
 }
 
 func (s *FieldErrorTranslatorSuite) TestSetFieldDefaultTranslation(c *C) {
-	et := errormapper.FieldErrorTranslator{}
+	et := errortranslator.New()
 
 	et.SetFieldDefaultTranslation("A", "default field translation")
 
-	c.Assert(et, DeepEquals, errormapper.FieldErrorTranslator{
-		"A": errormapper.ErrorTranslator{nil: "default field translation"},
+	c.Assert(et, DeepEquals, errortranslator.FieldErrorTranslator{
+		"A": errortranslator.ErrorTranslator{nil: "default field translation"},
 	})
 
 	//overwrite
 	et.SetFieldDefaultTranslation("A", "overwritten")
 
-	c.Assert(et, DeepEquals, errormapper.FieldErrorTranslator{
-		"A": errormapper.ErrorTranslator{nil: "overwritten"},
+	c.Assert(et, DeepEquals, errortranslator.FieldErrorTranslator{
+		"A": errortranslator.ErrorTranslator{nil: "overwritten"},
 	})
 }
 
 func (s *FieldErrorTranslatorSuite) TestSetFallbackTranslation(c *C) {
-	et := errormapper.FieldErrorTranslator{}
+	et := errortranslator.New()
 
 	et.SetFallbackTranslation(validate.ErrRequired, "default field err translation")
 
-	c.Assert(et, DeepEquals, errormapper.FieldErrorTranslator{
-		"": errormapper.ErrorTranslator{validate.ErrRequired: "default field err translation"},
+	c.Assert(et, DeepEquals, errortranslator.FieldErrorTranslator{
+		"": errortranslator.ErrorTranslator{validate.ErrRequired: "default field err translation"},
 	})
 
 	//overwrite
 	et.SetFallbackTranslation(validate.ErrRequired, "overwritten")
 
-	c.Assert(et, DeepEquals, errormapper.FieldErrorTranslator{
-		"": errormapper.ErrorTranslator{validate.ErrRequired: "overwritten"},
+	c.Assert(et, DeepEquals, errortranslator.FieldErrorTranslator{
+		"": errortranslator.ErrorTranslator{validate.ErrRequired: "overwritten"},
 	})
 }
 
 func (s *FieldErrorTranslatorSuite) TestSetFallbackDefaultTranslation(c *C) {
-	et := errormapper.FieldErrorTranslator{}
+	et := errortranslator.New()
 
 	et.SetFallbackDefaultTranslation("the absolute default")
 
-	c.Assert(et, DeepEquals, errormapper.FieldErrorTranslator{
-		"": errormapper.ErrorTranslator{nil: "the absolute default"},
+	c.Assert(et, DeepEquals, errortranslator.FieldErrorTranslator{
+		"": errortranslator.ErrorTranslator{nil: "the absolute default"},
 	})
 
 	//overwrite
 	et.SetFallbackDefaultTranslation("overwritten")
 
-	c.Assert(et, DeepEquals, errormapper.FieldErrorTranslator{
-		"": errormapper.ErrorTranslator{nil: "overwritten"},
+	c.Assert(et, DeepEquals, errortranslator.FieldErrorTranslator{
+		"": errortranslator.ErrorTranslator{nil: "overwritten"},
 	})
 }
 
 func (s *FieldErrorTranslatorSuite) TestTranslate(c *C) {
-	et := errormapper.FieldErrorTranslator{
-		"A": errormapper.ErrorTranslator{
+	et := errortranslator.FieldErrorTranslator{
+		"A": errortranslator.ErrorTranslator{
 			validate.ErrRequired: "a required translate",
 		},
-		"B": errormapper.ErrorTranslator{
+		"B": errortranslator.ErrorTranslator{
 			validate.ErrRequired: "b required translate",
 			validate.ErrMin:      "b min translate",
 			validate.ErrMax:      "b max translate",
@@ -182,16 +182,16 @@ func (s *FieldErrorTranslatorSuite) TestTranslate(c *C) {
 
 func (s *FieldErrorTranslatorSuite) TestTranslateWithDefault(c *C) {
 	//a translation with a default (nil) translation always succeeds translation
-	et := errormapper.FieldErrorTranslator{
-		"A": errormapper.ErrorTranslator{
+	et := errortranslator.FieldErrorTranslator{
+		"A": errortranslator.ErrorTranslator{
 			validate.ErrRequired: "a required translate",
 		},
-		"B": errormapper.ErrorTranslator{
+		"B": errortranslator.ErrorTranslator{
 			validate.ErrRequired: "b min translate",
 			validate.ErrMin:      "b min translate",
 			validate.ErrMax:      "b max translate",
 		},
-		"": errormapper.ErrorTranslator{
+		"": errortranslator.ErrorTranslator{
 			validate.ErrMin: "nil min default translate",
 		},
 	}
@@ -242,11 +242,11 @@ func (s *FieldErrorTranslatorSuite) TestTranslateWithDefault(c *C) {
 }
 
 func (s *FieldErrorTranslatorSuite) TestTranslateFirst(c *C) {
-	et := errormapper.FieldErrorTranslator{
-		"A": errormapper.ErrorTranslator{
+	et := errortranslator.FieldErrorTranslator{
+		"A": errortranslator.ErrorTranslator{
 			validate.ErrRequired: "a required translate",
 		},
-		"B": errormapper.ErrorTranslator{
+		"B": errortranslator.ErrorTranslator{
 			validate.ErrRequired: "b required translate",
 			validate.ErrMin:      "b min translate",
 			validate.ErrMax:      "b max translate",
@@ -323,16 +323,16 @@ func (s *FieldErrorTranslatorSuite) TestTranslateFirst(c *C) {
 
 func (s *FieldErrorTranslatorSuite) TestTranslateFirstWithDefault(c *C) {
 	//a translation with a default (nil) translation always succeeds translation
-	et := errormapper.FieldErrorTranslator{
-		"A": errormapper.ErrorTranslator{
+	et := errortranslator.FieldErrorTranslator{
+		"A": errortranslator.ErrorTranslator{
 			validate.ErrRequired: "a required translate",
 		},
-		"B": errormapper.ErrorTranslator{
+		"B": errortranslator.ErrorTranslator{
 			validate.ErrRequired: "b min translate",
 			validate.ErrMin:      "b min translate",
 			validate.ErrMax:      "b max translate",
 		},
-		"": errormapper.ErrorTranslator{
+		"": errortranslator.ErrorTranslator{
 			validate.ErrMin: "nil min default translate",
 		},
 	}
@@ -384,16 +384,16 @@ func (s *FieldErrorTranslatorSuite) TestTranslateFirstWithDefault(c *C) {
 
 func (s *FieldErrorTranslatorSuite) TestTranslateFirstFallback(c *C) {
 
-	fallback := errormapper.ErrorTranslator{
+	fallback := errortranslator.ErrorTranslator{
 		validate.ErrMin:      "fallback err min",
 		validate.ErrRequired: "fallback err required",
 	}
 
-	et := errormapper.FieldErrorTranslator{
-		"A": errormapper.ErrorTranslator{
+	et := errortranslator.FieldErrorTranslator{
+		"A": errortranslator.ErrorTranslator{
 			validate.ErrMax: "a max translate",
 		},
-		"": errormapper.ErrorTranslator{
+		"": errortranslator.ErrorTranslator{
 			validate.ErrRequired: "field map default err min",
 		},
 	}

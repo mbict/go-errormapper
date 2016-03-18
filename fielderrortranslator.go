@@ -1,67 +1,21 @@
-package errormapper
+package errortranslator
 
 import (
 	validate "github.com/mbict/go-validate"
 )
 
-type ErrorTranslator map[error]string
-
+// FieldErrorTranslator is a error translator that translates `errormaps` provided by the validator package.
 type FieldErrorTranslator map[string]ErrorTranslator
 
-func (et ErrorTranslator) AddTranslation(err error, message string) ErrorTranslator {
-	et[err] = message
-	return et
+// New creates a new Field error translator
+func New() FieldErrorTranslator {
+	return FieldErrorTranslator{}
 }
 
-func (et ErrorTranslator) SetDefaultTranslation(message string) ErrorTranslator {
-	return et.AddTranslation(nil, message)
-}
-
-func (et ErrorTranslator) TranslateError(err error, fallback ...ErrorTranslator) (string, bool) {
-	translation, ok := et[err]
-	if !ok {
-		translation, ok = et[nil]
-		if !ok {
-			//fallback to default
-			if len(fallback) >= 1 {
-				return fallback[0].TranslateError(err, fallback[1:]...)
-			}
-			return "", false
-		}
-	}
-	return translation, true
-}
-
-func (et ErrorTranslator) Translate(errs validate.Errors, fallback ...ErrorTranslator) (string, bool) {
-	return et.translateErrors(errs, false, fallback)
-}
-
-func (et ErrorTranslator) TranslateFirst(errs validate.Errors, fallback ...ErrorTranslator) (string, bool) {
-	return et.translateErrors(errs, true, fallback)
-}
-
-func (et ErrorTranslator) translateErrors(errs validate.Errors, firstOnly bool, fallback []ErrorTranslator) (string, bool) {
-	result := ""
-	for _, err := range errs {
-		translation, ok := et.TranslateError(err, fallback...)
-		if !ok {
-			continue
-		}
-
-		if result == "" {
-			result = translation
-		} else {
-			result = result + ", " + translation
-		}
-
-		if firstOnly {
-			//first message is enough head over to the next field
-			return result, true
-		}
-	}
-	return result, !(result == "")
-}
-
+// AddTranslation adds a new translation for error mapped to a field name.
+// If a translation is already present is will be overwritten by the new translation
+// The function returns a reference to the FieldErrorTranslator and is therefor very useful for chaining AddTranslation functions
+// Equivalent to this function is: fielderrortranslator[field] = ErrorTranslator{ err: message, }
 func (ft FieldErrorTranslator) AddTranslation(field string, err error, message string) FieldErrorTranslator {
 	if _, ok := ft[field]; !ok {
 		ft[field] = make(ErrorTranslator)
@@ -71,22 +25,35 @@ func (ft FieldErrorTranslator) AddTranslation(field string, err error, message s
 	return ft
 }
 
+// SetDefaultTranslation sets a default translation for a field to use when no matching errors in the map is found.
+// Equivalent to this function is: fielderrortranslator[field] = ErrorTranslator{ nil: message, }
 func (ft FieldErrorTranslator) SetFieldDefaultTranslation(field string, message string) FieldErrorTranslator {
 	return ft.AddTranslation(field, nil, message)
 }
 
+// SetFallbackTranslation sets a default translation for a error when no field is found or error is found that matches
+// error. This is useful to provide default translation for specific error messages
+// Equivalent to this function is: fielderrortranslator[""] = ErrorTranslator{ err: message, }
 func (ft FieldErrorTranslator) SetFallbackTranslation(err error, message string) FieldErrorTranslator {
 	return ft.AddTranslation("", err, message)
 }
 
+// SetFallbackDefaultTranslation sets a default translation for when all other matching attempts fail.
+// This is the last resort to return a translation. For example message `unknown occurred` or `there was a error`
+// Equivalent to this function is: fielderrortranslator[""] = ErrorTranslator{ nil: message, }
 func (ft FieldErrorTranslator) SetFallbackDefaultTranslation(message string) FieldErrorTranslator {
 	return ft.AddTranslation("", nil, message)
 }
 
+// Translate will translate a map (validate.ErrorMap) with errors (validate.Errors) into a human readable
+// message per field/map key.
+// If any of the provided error fields fail to find a translation, the function will return the map with the translated
+// errors and the second will be false indicated that we have a incomplete translation
 func (ft FieldErrorTranslator) Translate(errorMap validate.ErrorMap, fallback ...ErrorTranslator) (map[string]string, bool) {
 	return ft.translateErrorMap(errorMap, false, fallback)
 }
 
+// TranslateFirst works the same as Translate but will stop after the first positive match is found per field entry.
 func (ft FieldErrorTranslator) TranslateFirst(errorMap validate.ErrorMap, fallback ...ErrorTranslator) (map[string]string, bool) {
 	return ft.translateErrorMap(errorMap, true, fallback)
 }

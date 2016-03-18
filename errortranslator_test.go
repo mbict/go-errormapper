@@ -1,7 +1,7 @@
-package errormapper_test
+package errortranslator_test
 
 import (
-	errormapper "github.com/mbict/go-errormapper"
+	errortranslator "github.com/mbict/go-errortranslator"
 	validate "github.com/mbict/go-validate"
 	. "gopkg.in/check.v1"
 	"testing"
@@ -16,41 +16,41 @@ type ErrorTranslatorSuite struct{}
 var _ = Suite(&ErrorTranslatorSuite{})
 
 func (s *ErrorTranslatorSuite) TestAddTranslation(c *C) {
-	et := errormapper.ErrorTranslator{}
+	et := errortranslator.ErrorTranslator{}
 
 	et.AddTranslation(validate.ErrRequired, "translation")
 
-	c.Assert(et, DeepEquals, errormapper.ErrorTranslator{validate.ErrRequired: "translation"})
+	c.Assert(et, DeepEquals, errortranslator.ErrorTranslator{validate.ErrRequired: "translation"})
 
 	//overwrite
 	et.AddTranslation(validate.ErrRequired, "overritten")
 
-	c.Assert(et, DeepEquals, errormapper.ErrorTranslator{validate.ErrRequired: "overritten"})
+	c.Assert(et, DeepEquals, errortranslator.ErrorTranslator{validate.ErrRequired: "overritten"})
 
 	//add more
 	et.AddTranslation(validate.ErrMin, "min")
 
-	c.Assert(et, DeepEquals, errormapper.ErrorTranslator{
+	c.Assert(et, DeepEquals, errortranslator.ErrorTranslator{
 		validate.ErrRequired: "overritten",
 		validate.ErrMin:      "min",
 	})
 }
 
 func (s *ErrorTranslatorSuite) TestSetDefaultTranslation(c *C) {
-	et := errormapper.ErrorTranslator{}
+	et := errortranslator.ErrorTranslator{}
 
 	et.SetDefaultTranslation("default translation")
 
-	c.Assert(et, DeepEquals, errormapper.ErrorTranslator{nil: "default translation"})
+	c.Assert(et, DeepEquals, errortranslator.ErrorTranslator{nil: "default translation"})
 
 	//overwrite
 	et.SetDefaultTranslation("overwritten")
 
-	c.Assert(et, DeepEquals, errormapper.ErrorTranslator{nil: "overwritten"})
+	c.Assert(et, DeepEquals, errortranslator.ErrorTranslator{nil: "overwritten"})
 }
 
 func (s *ErrorTranslatorSuite) TestTranslateError(c *C) {
-	et := errormapper.ErrorTranslator{
+	et := errortranslator.ErrorTranslator{
 		validate.ErrRequired: "required translate",
 	}
 
@@ -64,7 +64,7 @@ func (s *ErrorTranslatorSuite) TestTranslateError(c *C) {
 }
 
 func (s *ErrorTranslatorSuite) TestTranslateErrorWitDefault(c *C) {
-	et := errormapper.ErrorTranslator{
+	et := errortranslator.ErrorTranslator{
 		validate.ErrRequired: "required translate",
 		nil:                  "nil default translate",
 	}
@@ -79,7 +79,7 @@ func (s *ErrorTranslatorSuite) TestTranslateErrorWitDefault(c *C) {
 }
 
 func (s *ErrorTranslatorSuite) TestTranslate(c *C) {
-	et := errormapper.ErrorTranslator{
+	et := errortranslator.ErrorTranslator{
 		validate.ErrRequired: "required translate",
 		validate.ErrMin:      "min translate",
 	}
@@ -123,7 +123,7 @@ func (s *ErrorTranslatorSuite) TestTranslate(c *C) {
 
 func (s *ErrorTranslatorSuite) TestTranslateWithDefault(c *C) {
 	//a translation with a default (nil) translation always succeeds translation
-	et := errormapper.ErrorTranslator{
+	et := errortranslator.ErrorTranslator{
 		validate.ErrRequired: "required translate",
 		validate.ErrMin:      "min translate",
 		nil:                  "nil default translate",
@@ -158,7 +158,7 @@ func (s *ErrorTranslatorSuite) TestTranslateWithDefault(c *C) {
 }
 
 func (s *ErrorTranslatorSuite) TestTranslateFirst(c *C) {
-	et := errormapper.ErrorTranslator{
+	et := errortranslator.ErrorTranslator{
 		validate.ErrRequired: "required translate",
 		validate.ErrMin:      "min translate",
 	}
@@ -202,7 +202,7 @@ func (s *ErrorTranslatorSuite) TestTranslateFirst(c *C) {
 
 func (s *ErrorTranslatorSuite) TestTranslateFirstWithDefault(c *C) {
 	//a translation with a default (nil) translation always succeeds translation
-	et := errormapper.ErrorTranslator{
+	et := errortranslator.ErrorTranslator{
 		validate.ErrRequired: "required translate",
 		validate.ErrMin:      "min translate",
 		nil:                  "nil default translate",
