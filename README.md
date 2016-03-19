@@ -1,3 +1,4 @@
+[![wercker status](https://app.wercker.com/status/5222cb1f98349914be3f8e2c9c4f0bf5/s "wercker status")](https://app.wercker.com/project/bykey/5222cb1f98349914be3f8e2c9c4f0bf5)
 [![Build Status](https://travis-ci.org/mbict/go-errortranslator.png?branch=master)](https://travis-ci.org/mbict/go-errortranslator)
 [![GoDoc](https://godoc.org/github.com/mbict/go-errortranslator?status.png)](http://godoc.org/github.com/mbict/go-errortranslator)
 [![GoCover](http://gocover.io/_badge/github.com/mbict/go-errortranslator)](http://gocover.io/github.com/mbict/go-errortranslator)
@@ -20,7 +21,7 @@ translator := errortranslator.New()
 translator.SetFallbackTranslation(validate.ErrRequired, "This is a required field")
 translator.SetFallbackDefaultTranslation("There is a unknown error")
 translator.AddTranslation("A", validate.ErrRequired, "A field is required")
-translator.SetFieldDefaultTranslation("A", "A field has a error")
+translator.SetDefaultTranslation("A", "A field has a error")
 
 translatedMap, allTranslated := translator.Translate( validate.ErrorMap{
     "A": validate.Errors{ validate.ErrRequired, validate.ErrMin, },

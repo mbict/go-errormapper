@@ -27,7 +27,7 @@ func (ft FieldErrorTranslator) AddTranslation(field string, err error, message s
 
 // SetDefaultTranslation sets a default translation for a field to use when no matching errors in the map is found.
 // Equivalent to this function is: fielderrortranslator[field] = ErrorTranslator{ nil: message, }
-func (ft FieldErrorTranslator) SetFieldDefaultTranslation(field string, message string) FieldErrorTranslator {
+func (ft FieldErrorTranslator) SetDefaultTranslation(field string, message string) FieldErrorTranslator {
 	return ft.AddTranslation(field, nil, message)
 }
 

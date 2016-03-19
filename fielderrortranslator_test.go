@@ -49,17 +49,17 @@ func (s *FieldErrorTranslatorSuite) TestAddTranslation(c *C) {
 	})
 }
 
-func (s *FieldErrorTranslatorSuite) TestSetFieldDefaultTranslation(c *C) {
+func (s *FieldErrorTranslatorSuite) TestSetDefaultTranslation(c *C) {
 	et := errortranslator.New()
 
-	et.SetFieldDefaultTranslation("A", "default field translation")
+	et.SetDefaultTranslation("A", "default field translation")
 
 	c.Assert(et, DeepEquals, errortranslator.FieldErrorTranslator{
 		"A": errortranslator.ErrorTranslator{nil: "default field translation"},
 	})
 
 	//overwrite
-	et.SetFieldDefaultTranslation("A", "overwritten")
+	et.SetDefaultTranslation("A", "overwritten")
 
 	c.Assert(et, DeepEquals, errortranslator.FieldErrorTranslator{
 		"A": errortranslator.ErrorTranslator{nil: "overwritten"},
